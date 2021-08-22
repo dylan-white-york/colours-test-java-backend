@@ -27,6 +27,7 @@ import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -242,7 +243,30 @@ public class PeopleControllerTest {
                 "{'id':1, 'firstName':'Bo', 'lastName':'Bob', 'authorised':false, 'enabled':true, 'colours':[{'id':3, 'name':'Blue'}]}"
             ));
     }
+    
+    @Test
+    public void testSaveReturnsPerson() throws Exception {
+        final Person person = new Person(12L, "Dylan", "White", false, true, Arrays.asList(new Colour[]{new Colour(3L, "Blue")}));
 
+        // Given
+        given(peopleRepository.save(any())).willReturn(person);
+
+        // When
+        ResultActions result = mvc.perform(
+            post("/People")
+            .content(
+                "{\"authorised\":false, \"enabled\":true, \"colours\":[{\"id\":3,\"name\":\"Blue\"}]}")
+            .contentType(APPLICATION_JSON)
+            .characterEncoding("UTF-8")
+            .accept(APPLICATION_JSON));     
+        
+        // Then
+        result.andExpect(content().contentTypeCompatibleWith(APPLICATION_JSON))
+            .andExpect(content().json(
+                "{'id':12, 'firstName':'Dylan', 'lastName':'White', 'authorised':false, 'enabled':true, 'colours':[{'id':3, 'name':'Blue'}]}"
+            ));
+    }
+    
     private PersonUpdateDTO personUpdateDTO(Boolean authorised, Boolean enabled, Colour... colours) {
         PersonUpdateDTO p = new PersonUpdateDTO();
         p.setAuthorised(authorised);
